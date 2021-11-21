@@ -1,49 +1,71 @@
+class I:
+    MUL = "mul"
+    ADD = "add"
+    PRINT = "print"
+    STORE = "store"
+    LOAD = "load"
+    DEBUG = "debug"
+    DEFINE_INT = "define_int"
+    INT = "int"
+    DEF_FUNCTION = "def_function"
+    FUNCTION = "function"
+    IF = "if"
+    EQUAL = "equal"
+    NOT_EQUAL = "not_equal"
+    LESS = "less"
+    LESS_EQUAL = "less_equal"
+    GREATER = "greater"
+    GREATER_EQUAL = "greater_equal"
+
 class Interpreteur:
-    def __init__(self, code, debug_mode=False):
-        self.code = code
-        self.stack = []
+    def __init__(self, debug_mode=False):
+        self.memoire = {}
         self.debug_mode = debug_mode
-    def load(self, nb):
-        self.stack.append(nb)
-    def add(self):
-        self.stack.append(self.stack.pop() + self.stack.pop())
-    def sub(self):
-        self.stack.append(self.stack.pop() - self.stack.pop())
-    def mul(self):
-        self.stack.append(self.stack.pop() * self.stack.pop())
-    def div(self):
-        self.stack.append(self.stack.pop() // self.stack.pop())
-    def mod(self):
-        self.stack.append(self.stack.pop() % self.stack.pop())
-    def print(self):
-        print(self.stack.pop())
-    def debug(self):
-        self.debug_mode = True
-    def run(self):
-        for commande in self.code:
-            if isinstance(commande, str):
-                commande = (commande, )
+    def run(self, code):
+        for commande in code:
             if self.debug_mode:
-                print(f"stack : {self.stack} commande : {commande}")
-            if commande[0] == "load":
-                self.stack.append(int(commande[1]))
-            elif commande[0] == "add":
-                self.add()
-            elif commande[0] == "sub":
-                self.sub()
-            elif commande[0] == "mul":
-                self.mul()
-            elif commande[0] == "div":
-                self.div()
-            elif commande[0] == "mod":
-                self.mod()
-            elif commande[0] == "print":
-                self.print()
-            elif commande[0] == "debug":
-                self.debug()
-            else:
-                pass
-code = [("load", "2"    ), ("load", "3"), ("add"), ("print")]
-interpreteur = Interpreteur(code, debug_mode=False)
-interpreteur.run()
-#print 5
+                print(f"MEMOIRE = {self.memoire} COMMANDE : {commande}")
+            match commande:
+                case I.ADD, var1, var2, store: 
+                    self.memoire[store] = [self.memoire[var1][0] + self.memoire[var2][0], I.INT]
+                case I.MUL, var1, var2, store:
+                    self.memoire[store] = [self.memoire[var1][0] * self.memoire[var2][0], I.INT]
+                case I.PRINT, id_memoire:
+                    print(self.memoire[id_memoire])
+                case I.DEBUG:
+                    self.debug_mode = True
+                case I.DEFINE_INT, id_memoire, value:
+                    self.memoire[id_memoire] = [int(value), I.INT]
+                case I.DEF_FUNCTION, name, code:
+                    self.memoire[name] = [code, I.FUNCTION]
+                case I.FUNCTION, name:
+                    self.run(self.memoire[name][0])
+                case I.IF, condition, code:
+                    match condition:
+                        case I.EQUAL, var1, var2:
+                            if self.memoire[var1][0] == self.memoire[var2][0]:
+                                self.run(code)
+                        case I.NOT_EQUAL, var1, var2:
+                            if self.memoire[var1][0] != self.memoire[var2][0]:
+                                self.run(code)
+                        case I.LESS, var1, var2:
+                            if self.memoire[var1][0] < self.memoire[var2][0]:
+                                self.run(code)
+                        case I.LESS_EQUAL, var1, var2:
+                            if self.memoire[var1][0] <= self.memoire[var2][0]:
+                                self.run(code)
+                        case I.GREATER, var1, var2:
+                            if self.memoire[var1][0] > self.memoire[var2][0]:
+                                self.run(code)
+                        case I.GREATER_EQUAL, var1, var2:
+                            if self.memoire[var1][0] >= self.memoire[var2][0]:
+                                self.run(code)
+
+code = [(I.DEFINE_INT, "a", "4"), 
+        (I.DEFINE_INT, "b", "8"), 
+        (I.DEF_FUNCTION, "doubler", [(I.ADD, "a", "a", "a"), (I.PRINT, "a")]),
+        (I.FUNCTION, "doubler"),
+        (I.IF, [I.EQUAL, "a", "b"], [(I.FUNCTION, "doubler"), (I.PRINT, "a")]),
+        (I.FUNCTION, "doubler"),
+        ]
+Interpreteur(debug_mode=True).run(code)
