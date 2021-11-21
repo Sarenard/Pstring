@@ -9,7 +9,7 @@ class Parser:
         with open(file, 'r') as f:
             for line in f:
                 self.lignes += line
-        self.lignes = list(self.lignes.split('\n'))
+        self.lignes = list(self.lignes.replace("\n", "").split(";"))
         for ligne in self.lignes:
             self.parse_line(ligne)
         if self.debug_mode : print(f"lignes brutes : {self.lignes}\ncode : {self.code}")

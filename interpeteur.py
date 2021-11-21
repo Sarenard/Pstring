@@ -15,6 +15,8 @@ class I:
     GREATER_EQUAL = "greater_equal"
     POW = "pow"
     LOOP = "loop"
+    DEFINE_STR = "define_str"
+    STR = "str"
 
 class Interpretor:
     def __init__(self, debug_mode=False):
@@ -27,12 +29,26 @@ class Interpretor:
             match commande:
                 case I.ADD, var1, var2, store: 
                     if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
+                        if self.memoire[store][1] != I.INT:
+                            raise Exception("Erreur : la variable de stockage doit être un entier")
                         self.memoire[store] = [self.memoire[var1][0] + self.memoire[var2][0], I.INT]
+                    if self.memoire[var1][1] == self.memoire[var2][1] == I.STR:
+                        if self.memoire[store][1] != I.STR:
+                            raise Exception("Erreur : la variable de stockage doit être une chaine de caractères")
+                        self.memoire[store] = [self.memoire[var1][0] + self.memoire[var2][0], I.STR]
+                    if self.memoire[var1][1] == self.memoire[var2][1] == I.STR:
+                        raise Exception("Multiplication d'un string par un string")
                 case I.MUL, var1, var2, store:
                     if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
+                        if self.memoire[store][1] != I.INT:
+                            raise Exception("Erreur : la variable de stockage doit être un entier")
                         self.memoire[store] = [self.memoire[var1][0] * self.memoire[var2][0], I.INT]
-                case I.PRINT, id_memoire, end:
-                    print(self.memoire[id_memoire], end=end)
+                    if self.memoire[var1][1] == I.STR and self.memoire[var2][1] == I.INT:
+                        if self.memoire[store][1] != I.STR:
+                            raise Exception("Erreur : la variable de stockage doit être une chaine de caractères")
+                        self.memoire[store] = [self.memoire[var1][0] * self.memoire[var2][0], I.STR]
+                    if self.memoire[var1][1] == self.memoire[var2][1] == I.STR:
+                        raise Exception("Multiplication d'un string par un string")
                 case I.PRINT, id_memoire:
                     print(self.memoire[id_memoire])
                 case I.DEFINE_INT, id_memoire, value:
@@ -47,38 +63,60 @@ class Interpretor:
                             if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
                                 if self.memoire[var1][0] == self.memoire[var2][0]:
                                     self.run(code)
+                            if self.memoire[var1][1] == self.memoire[var2][1] == I.STR:
+                                if self.memoire[var1][0] == self.memoire[var2][0]:
+                                    self.run(code)
                         case I.NOT_EQUAL, var1, var2:
                             if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
+                                if self.memoire[var1][0] != self.memoire[var2][0]:
+                                    self.run(code)
+                            if self.memoire[var1][1] == self.memoire[var2][1] == I.STR:
                                 if self.memoire[var1][0] != self.memoire[var2][0]:
                                     self.run(code)
                         case I.LESS, var1, var2:
                             if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
                                 if self.memoire[var1][0] < self.memoire[var2][0]:
                                     self.run(code)
+                            if self.memoire[var1][1] == I.STR or  self.memoire[var2][1] == I.STR:
+                                raise Exception("Les variables ne sont pas des entiers")
                         case I.LESS_EQUAL, var1, var2:
                             if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
                                 if self.memoire[var1][0] <= self.memoire[var2][0]:
                                     self.run(code)
+                            if self.memoire[var1][1] == I.STR or self.memoire[var2][1] == I.STR:
+                                raise Exception("Les variables ne sont pas des entiers")
                         case I.GREATER, var1, var2:
                             if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
                                 if self.memoire[var1][0] > self.memoire[var2][0]:
                                     self.run(code)
+                            if self.memoire[var1][1] == I.STR or self.memoire[var2][1] == I.STR:
+                                raise Exception("Les variables ne sont pas des entiers")
                         case I.GREATER_EQUAL, var1, var2:
                             if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
                                 if self.memoire[var1][0] >= self.memoire[var2][0]:
                                     self.run(code)
+                            if self.memoire[var1][1] == I.STR or self.memoire[var2][1] == I.STR:
+                                raise Exception("Les variables ne sont pas des entiers")
                 case I.POW, var1, var2, store:
                     if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
                         self.memoire[store] = [self.memoire[var1][0] ** self.memoire[var2][0], I.INT]
+                    if self.memoire[var1][1] == I.STR or self.memoire[var2][1] == I.STR:
+                        raise Exception("Les variables ne sont pas des entiers")
                 case I.LOOP, nb, code:
-                    if self.memoire[nb][1] == I.INT:
+                    if self.memoire[nb][1] != I.INT:
+                        raise Exception("La variable n'est pas un entier")
+                    else:
                         for _ in range(self.memoire[nb][0]-1):
                             self.run(code)
+                case I.DEFINE_STR, id_memoire, value:
+                    self.memoire[id_memoire] = [value, I.STR]
+                    
+
 if __name__ == "__main__":
-    code = [(I.DEFINE_INT, "a", "2"), 
-            (I.DEFINE_INT, "b", "6"),
-            (I.DEF_FUNCTION, "double", [(I.ADD, "a", "a", "a")]),
-            (I.LOOP, "b", [(I.FUNCTION, "double")]),
-            (I.PRINT, "a"),
+    code = [(I.DEFINE_STR, "a", "coucou"), 
+            (I.DEFINE_INT, "b", "3"),
+            (I.DEFINE_STR, "resultat", ""),
+            (I.MUL, "a", "b", "resultat"),
+            (I.PRINT, "resultat"),
             ]
-    Interpretor(debug_mode=False).run(code)
+    Interpretor(debug_mode=True).run(code)
