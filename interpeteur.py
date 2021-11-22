@@ -21,6 +21,7 @@ class I:
     COPY_VAR = "copy_var"
     STR_INPUT = "str_input"
     INT_INPUT = "int_input"
+    PRINT_RAW = "print_raw"
 
 class Interpretor:
     def __init__(self, debug_mode=False):
@@ -57,6 +58,8 @@ class Interpretor:
                     print(self.memoire[id_memoire][0])
                 case I.TPRINT, id_memoire:
                     print(self.memoire[id_memoire])
+                case I.PRINT_RAW, autre:
+                    print(autre)
                 case I.DEFINE_INT, id_memoire, value:
                     if not isinstance(value, int):
                         raise Exception("Erreur : la valeur doit être un entier")
@@ -85,7 +88,7 @@ class Interpretor:
                             if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
                                 if self.memoire[var1][0] < self.memoire[var2][0]:
                                     self.run(code)
-                            if self.memoire[var1][1] == I.STR or  self.memoire[var2][1] == I.STR:
+                            if self.memoire[var1][1] == I.STR or self.memoire[var2][1] == I.STR:
                                 raise Exception("Les variables ne sont pas des entiers")
                         case I.LESS_EQUAL, var1, var2:
                             if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
@@ -129,13 +132,20 @@ class Interpretor:
                         self.memoire[var] = [int(input(texte)), I.INT]
                     except:
                         raise Exception("Erreur : la valeur entrée n'est pas un entier")
-                    
+
+# code = [(I.INT_INPUT, "a", "Calculer 2**"),
+#         (I.DEFINE_INT, "nb", 2),
+#         (I.DEF_FUNCTION, "double", [(I.ADD, "nb", "nb", "nb")]),
+#         (I.LOOP, "a", [(I.FUNCTION, "double")]),
+#         (I.PRINT, "nb"),
+#         ]
+      
 
 if __name__ == "__main__":
-    code = [(I.STR_INPUT, "a", "Merci de donner un mot a multiplier >>> "), 
-            (I.INT_INPUT, "b", "Merci de donner un nombre >>> "),
-            (I.DEFINE_STR, "resultat", ""),
-            (I.MUL, "a", "b", "resultat"),
-            (I.PRINT, "resultat"),
+    code = [(I.INT_INPUT, "x", "Nb de fois a run : "),
+            (I.DEFINE_INT, "var", 0),
+            (I.DEFINE_INT, "1", 1),
+            (I.ADD, "x", "1", "x"),
+            (I.LOOP, "x", [(I.ADD, "var", "1", "var"), (I.PRINT, "var")]),
             ]
     Interpretor(debug_mode=False).run(code)

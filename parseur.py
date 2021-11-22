@@ -17,7 +17,7 @@ class Parser:
     def parse_line(self, ligne):
         match ligne.split():
             case "int", var, value:
-                self.code.append((I.DEFINE_INT, var, value))
+                self.code.append((I.DEFINE_INT, var, int(value)))
             case "print", value, end:
                 self.code.append((I.PRINT, value, end))
             case "print", value:
