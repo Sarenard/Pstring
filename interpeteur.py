@@ -180,12 +180,12 @@ class Interpretor:
 if __name__ == "__main__":
     code = [
         (I.DEFINE_INT, "1", 1),
+        (I.DEFINE_INT, "a", 2),
+        (I.DEFINE_INT, "0", 0),
+        (I.DEFINE_INT, "-1", -1),
+        (I.DEFINE_INT, "-1000", -1000),
+        (I.DEFINE_INT, "2", 2),
         (I.DEF_FUNCTION, "test_prime", [
-            (I.DEFINE_INT, "a", 2),
-            (I.DEFINE_INT, "0", 0),
-            (I.DEFINE_INT, "-1", -1),
-            (I.DEFINE_INT, "-1000", -1000),
-            (I.DEFINE_INT, "2", 2),
             (I.DEFINE_STR, "est_premier", "est premier"),
             (I.COPY_VAR, "input", "valeur"),
             (I.COPY_VAR, "tinput", "input"),
