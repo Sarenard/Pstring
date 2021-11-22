@@ -5,6 +5,7 @@ class I:
     TPRINT = "tprint"
     DEFINE_INT = "define_int"
     INT = "int"
+    POW = "pow"
     DEF_FUNCTION = "def_function"
     FUNCTION = "function"
     IF = "if"
@@ -22,6 +23,11 @@ class I:
     STR_INPUT = "str_input"
     INT_INPUT = "int_input"
     PRINT_RAW = "print_raw"
+    MOD = "mod"
+    IFMOD = "ifmod"
+    NOTIFMOD = "notifmod"
+    PRINT_END = "print_end"
+    PRINT_END_RAW = "print_end_raw"
 
 class Interpretor:
     def __init__(self, debug_mode=False):
@@ -43,6 +49,13 @@ class Interpretor:
                         self.memoire[store] = [self.memoire[var1][0] + self.memoire[var2][0], I.STR]
                     if self.memoire[var1][1] == self.memoire[var2][1] == I.STR:
                         raise Exception("Multiplication d'un string par un string")
+                case I.POW, var1, var2, store:
+                    if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
+                        if self.memoire[store][1] != I.INT:
+                            raise Exception("Erreur : la variable de stockage doit être un entier")
+                        self.memoire[store] = [self.memoire[var1][0] ** self.memoire[var2][0], I.INT]
+                    if self.memoire[var1][1] == I.STR or self.memoire[var2][1] == I.STR:     
+                        raise Exception("Puissance d'un string")
                 case I.MUL, var1, var2, store:
                     if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
                         if self.memoire[store][1] != I.INT:
@@ -54,8 +67,19 @@ class Interpretor:
                         self.memoire[store] = [self.memoire[var1][0] * self.memoire[var2][0], I.STR]
                     if self.memoire[var1][1] == self.memoire[var2][1] == I.STR:
                         raise Exception("Multiplication d'un string par un string")
+                case I.MOD, var1, var2, store:
+                    if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
+                        if self.memoire[store][1] != I.INT:
+                            raise Exception("Erreur : la variable de stockage doit être un entier")
+                        self.memoire[store] = [self.memoire[var1][0] % self.memoire[var2][0], I.INT]
+                    else:
+                        raise Exception("Modulo d'un non entier par un non entier")
                 case I.PRINT, id_memoire:
                     print(self.memoire[id_memoire][0])
+                case I.PRINT_END, id_memoire, end:
+                    print(self.memoire[id_memoire][0], end=end)
+                case I.PRINT_END_RAW, raw, end:
+                    print(raw, end=end)
                 case I.TPRINT, id_memoire:
                     print(self.memoire[id_memoire])
                 case I.PRINT_RAW, autre:
@@ -108,6 +132,18 @@ class Interpretor:
                                     self.run(code)
                             if self.memoire[var1][1] == I.STR or self.memoire[var2][1] == I.STR:
                                 raise Exception("Les variables ne sont pas des entiers")
+                        case I.IFMOD, var1, var2:
+                            if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
+                                if self.memoire[var1][0] % self.memoire[var2][0] != 0:
+                                    self.run(code)
+                            if self.memoire[var1][1] == I.STR or self.memoire[var2][1] == I.STR:
+                                raise Exception("Les variables ne sont pas des entiers")
+                        case I.NOTIFMOD, var1, var2:
+                            if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
+                                if self.memoire[var1][0] % self.memoire[var2][0] == 0:
+                                    self.run(code)
+                            if self.memoire[var1][1] == I.STR or self.memoire[var2][1] == I.STR:
+                                raise Exception("Les variables ne sont pas des entiers")
                 case I.POW, var1, var2, store:
                     if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
                         self.memoire[store] = [self.memoire[var1][0] ** self.memoire[var2][0], I.INT]
@@ -142,10 +178,41 @@ class Interpretor:
       
 
 if __name__ == "__main__":
-    code = [(I.INT_INPUT, "x", "Nb de fois a run : "),
-            (I.DEFINE_INT, "var", 0),
-            (I.DEFINE_INT, "1", 1),
-            (I.ADD, "x", "1", "x"),
-            (I.LOOP, "x", [(I.ADD, "var", "1", "var"), (I.PRINT, "var")]),
-            ]
+    code = [
+        (I.DEFINE_INT, "1", 1),
+        (I.DEF_FUNCTION, "test_prime", [
+            (I.DEFINE_INT, "a", 2),
+            (I.DEFINE_INT, "0", 0),
+            (I.DEFINE_INT, "-1", -1),
+            (I.DEFINE_INT, "-1000", -1000),
+            (I.DEFINE_INT, "2", 2),
+            (I.DEFINE_STR, "est_premier", "est premier"),
+            (I.COPY_VAR, "input", "valeur"),
+            (I.COPY_VAR, "tinput", "input"),
+            (I.DEF_FUNCTION, "is_prime", [(I.IF, (I.GREATER_EQUAL, "input", "a"), [
+                (I.COPY_VAR, "i", "a"),
+                (I.COPY_VAR, "mod", "input"),
+                (I.ADD, "input", "-1", "input"),
+                (I.ADD, "input", "-1", "input"),
+                (I.LOOP, "input", [
+                    (I.ADD, "i", "1", "i"),
+                    (I.IF, (I.NOTIFMOD, "mod", "i"), [(I.DEFINE_STR, "est_premier", "n'est pas premier")]),])
+                ]),
+                (I.IF, (I.EQUAL, "input", "2"), [(I.DEFINE_STR, "est_premier", "n'est pas premier")]),
+                (I.IF, (I.LESS_EQUAL, "tinput", "1"), [(I.DEFINE_STR, "est_premier", "n'est pas premier")])]
+            ),
+            (I.FUNCTION, "is_prime"),
+            (I.PRINT, "est_premier")
+        ]),
+        (I.INT_INPUT, "total_max", "Entrez un entier >>> "),
+        (I.ADD, "total_max", "1", "total_max"),
+        (I.DEFINE_INT, "valeur", 1),
+        (I.LOOP, "total_max", [
+            (I.PRINT_END_RAW, "Le nombre ", ""),
+            (I.PRINT_END, "valeur", ""),
+            (I.PRINT_END_RAW, " ", ""),
+            (I.FUNCTION, "test_prime"),
+            (I.ADD, "valeur", "1", "valeur"),
+        ]),
+    ]
     Interpretor(debug_mode=False).run(code)
