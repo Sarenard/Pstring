@@ -2,6 +2,7 @@ class I:
     MUL = "mul"
     ADD = "add"
     PRINT = "print"
+    TPRINT = "tprint"
     DEFINE_INT = "define_int"
     INT = "int"
     DEF_FUNCTION = "def_function"
@@ -17,6 +18,9 @@ class I:
     LOOP = "loop"
     DEFINE_STR = "define_str"
     STR = "str"
+    COPY_VAR = "copy_var"
+    STR_INPUT = "str_input"
+    INT_INPUT = "int_input"
 
 class Interpretor:
     def __init__(self, debug_mode=False):
@@ -50,9 +54,13 @@ class Interpretor:
                     if self.memoire[var1][1] == self.memoire[var2][1] == I.STR:
                         raise Exception("Multiplication d'un string par un string")
                 case I.PRINT, id_memoire:
+                    print(self.memoire[id_memoire][0])
+                case I.TPRINT, id_memoire:
                     print(self.memoire[id_memoire])
                 case I.DEFINE_INT, id_memoire, value:
-                    self.memoire[id_memoire] = [int(value), I.INT]
+                    if not isinstance(value, int):
+                        raise Exception("Erreur : la valeur doit être un entier")
+                    self.memoire[id_memoire] = [value, I.INT]
                 case I.DEF_FUNCTION, name, code:
                     self.memoire[name] = [code, I.FUNCTION]
                 case I.FUNCTION, name:
@@ -109,14 +117,25 @@ class Interpretor:
                         for _ in range(self.memoire[nb][0]-1):
                             self.run(code)
                 case I.DEFINE_STR, id_memoire, value:
+                    if not isinstance(value, str):
+                        raise Exception("Erreur : la valeur doit être une chaine de caractères")
                     self.memoire[id_memoire] = [value, I.STR]
+                case I.COPY_VAR, var1, var2:
+                    self.memoire[var1] = self.memoire[var2]
+                case I.STR_INPUT, var, texte:
+                    self.memoire[var] = [input(texte), I.STR]
+                case I.INT_INPUT, var, texte:
+                    try:
+                        self.memoire[var] = [int(input(texte)), I.INT]
+                    except:
+                        raise Exception("Erreur : la valeur entrée n'est pas un entier")
                     
 
 if __name__ == "__main__":
-    code = [(I.DEFINE_STR, "a", "coucou"), 
-            (I.DEFINE_INT, "b", "3"),
+    code = [(I.STR_INPUT, "a", "Merci de donner un mot a multiplier >>> "), 
+            (I.INT_INPUT, "b", "Merci de donner un nombre >>> "),
             (I.DEFINE_STR, "resultat", ""),
             (I.MUL, "a", "b", "resultat"),
             (I.PRINT, "resultat"),
             ]
-    Interpretor(debug_mode=True).run(code)
+    Interpretor(debug_mode=False).run(code)
