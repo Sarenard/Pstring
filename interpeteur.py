@@ -28,6 +28,15 @@ class I:
     NOTIFMOD = "notifmod"
     PRINT_END = "print_end"
     PRINT_END_RAW = "print_end_raw"
+    DEFINE_LIST = "define_list"
+    LIST = "list"
+    LIST_APPEND = "list_append"
+    LIST_POP = "list_pop"
+    LIST_GET = "list_get"
+    LIST_SET = "list_set"
+    GET_LIST_LEN = "get_list_len"
+    BIG_EQUAL = "big_equal"
+    BIG_NOT_EQUAL = "big_not_equal"
 
 class Interpretor:
     def __init__(self, debug_mode=False):
@@ -49,13 +58,15 @@ class Interpretor:
                         self.memoire[store] = [self.memoire[var1][0] + self.memoire[var2][0], I.STR]
                     if self.memoire[var1][1] == self.memoire[var2][1] == I.STR:
                         raise Exception("Multiplication d'un string par un string")
+                    if self.memoire[var1][1] == self.memoire[var2][1] == I.LIST:
+                        self.memoire[store] = [self.memoire[var1][0] + self.memoire[var2][0], I.LIST]
                 case I.POW, var1, var2, store:
                     if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
                         if self.memoire[store][1] != I.INT:
                             raise Exception("Erreur : la variable de stockage doit être un entier")
                         self.memoire[store] = [self.memoire[var1][0] ** self.memoire[var2][0], I.INT]
-                    if self.memoire[var1][1] == I.STR or self.memoire[var2][1] == I.STR:     
-                        raise Exception("Puissance d'un string")
+                    if self.memoire[var1][1] != I.INT or self.memoire[var2][1] != I.INT:     
+                        raise Exception("Puissance d'un non int")
                 case I.MUL, var1, var2, store:
                     if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
                         if self.memoire[store][1] != I.INT:
@@ -67,6 +78,8 @@ class Interpretor:
                         self.memoire[store] = [self.memoire[var1][0] * self.memoire[var2][0], I.STR]
                     if self.memoire[var1][1] == self.memoire[var2][1] == I.STR:
                         raise Exception("Multiplication d'un string par un string")
+                    if self.memoire[var][1] == I.LIST and self.memoire[var2][1] == I.INT:
+                        self.memoire[store] = [self.memoire[var1][0] * self.memoire[var2][0], I.LIST]
                 case I.MOD, var1, var2, store:
                     if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
                         if self.memoire[store][1] != I.INT:
@@ -95,59 +108,59 @@ class Interpretor:
                 case I.IF, condition, code:
                     match condition:
                         case I.EQUAL, var1, var2:
-                            if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
-                                if self.memoire[var1][0] == self.memoire[var2][0]:
-                                    self.run(code)
-                            if self.memoire[var1][1] == self.memoire[var2][1] == I.STR:
+                            if self.memoire[var1][1] == self.memoire[var2][1]:
                                 if self.memoire[var1][0] == self.memoire[var2][0]:
                                     self.run(code)
                         case I.NOT_EQUAL, var1, var2:
-                            if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
+                            if self.memoire[var1][1] == self.memoire[var2][1]:
                                 if self.memoire[var1][0] != self.memoire[var2][0]:
                                     self.run(code)
-                            if self.memoire[var1][1] == self.memoire[var2][1] == I.STR:
-                                if self.memoire[var1][0] != self.memoire[var2][0]:
-                                    self.run(code)
+                        case I.BIG_EQUAL, var1, var2:
+                            if self.memoire[var1] == self.memoire[var2]:
+                                self.run(code)
+                        case I.BIG_NOT_EQUAL, var1, var2:
+                            if self.memoire[var1] != self.memoire[var2]:
+                                self.run(code)
                         case I.LESS, var1, var2:
                             if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
                                 if self.memoire[var1][0] < self.memoire[var2][0]:
                                     self.run(code)
-                            if self.memoire[var1][1] == I.STR or self.memoire[var2][1] == I.STR:
+                            if self.memoire[var1][1] != I.INT or self.memoire[var2][1] != I.INT:
                                 raise Exception("Les variables ne sont pas des entiers")
                         case I.LESS_EQUAL, var1, var2:
                             if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
                                 if self.memoire[var1][0] <= self.memoire[var2][0]:
                                     self.run(code)
-                            if self.memoire[var1][1] == I.STR or self.memoire[var2][1] == I.STR:
+                            if self.memoire[var1][1] != I.INT or self.memoire[var2][1] != I.INT:
                                 raise Exception("Les variables ne sont pas des entiers")
                         case I.GREATER, var1, var2:
                             if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
                                 if self.memoire[var1][0] > self.memoire[var2][0]:
                                     self.run(code)
-                            if self.memoire[var1][1] == I.STR or self.memoire[var2][1] == I.STR:
+                            if self.memoire[var1][1] != I.INT or self.memoire[var2][1] != I.INT:
                                 raise Exception("Les variables ne sont pas des entiers")
                         case I.GREATER_EQUAL, var1, var2:
                             if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
                                 if self.memoire[var1][0] >= self.memoire[var2][0]:
                                     self.run(code)
-                            if self.memoire[var1][1] == I.STR or self.memoire[var2][1] == I.STR:
+                            if self.memoire[var1][1] != I.INT or self.memoire[var2][1] != I.INT:
                                 raise Exception("Les variables ne sont pas des entiers")
                         case I.IFMOD, var1, var2:
                             if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
                                 if self.memoire[var1][0] % self.memoire[var2][0] != 0:
                                     self.run(code)
-                            if self.memoire[var1][1] == I.STR or self.memoire[var2][1] == I.STR:
+                            if self.memoire[var1][1] != I.INT or self.memoire[var2][1] != I.INT:
                                 raise Exception("Les variables ne sont pas des entiers")
                         case I.NOTIFMOD, var1, var2:
                             if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
                                 if self.memoire[var1][0] % self.memoire[var2][0] == 0:
                                     self.run(code)
-                            if self.memoire[var1][1] == I.STR or self.memoire[var2][1] == I.STR:
+                            if self.memoire[var1][1] != I.INT or self.memoire[var2][1] != I.INT:
                                 raise Exception("Les variables ne sont pas des entiers")
                 case I.POW, var1, var2, store:
                     if self.memoire[var1][1] == self.memoire[var2][1] == I.INT:
                         self.memoire[store] = [self.memoire[var1][0] ** self.memoire[var2][0], I.INT]
-                    if self.memoire[var1][1] == I.STR or self.memoire[var2][1] == I.STR:
+                    if self.memoire[var1][1] != I.INT or self.memoire[var2][1] != I.INT:
                         raise Exception("Les variables ne sont pas des entiers")
                 case I.LOOP, nb, code:
                     if self.memoire[nb][1] != I.INT:
@@ -168,6 +181,21 @@ class Interpretor:
                         self.memoire[var] = [int(input(texte)), I.INT]
                     except:
                         raise Exception("Erreur : la valeur entrée n'est pas un entier")
+                case I.DEFINE_LIST, id_memoire, values:
+                    self.memoire[id_memoire] = [values, I.LIST]
+                case I.LIST_APPEND, var, value:
+                    self.memoire[var][0].append(value)
+                case I.LIST_POP, var, index:
+                    self.memoire[var][0].pop(index)
+                case I.LIST_GET, var_input, id_output, index:
+                    self.memoire[var_input] = self.memoire[id_output][0][index]
+                case I.LIST_SET, liste, index, value:
+                    self.memoire[liste][0][index] = value
+                case I.GET_LIST_LEN, var, id_memoire_liste:
+                    self.memoire[var] = [len(self.memoire[id_memoire_liste][0]), I.INT]
+                    
+                    
+                
 
 # code = [(I.INT_INPUT, "a", "Calculer 2**"),
 #         (I.DEFINE_INT, "nb", 2),
